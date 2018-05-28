@@ -9,6 +9,8 @@ import urllib2
 import cookielib
 import re
 import base64
+import requests
+import cfscrape
 
 headers = {"Host": "www.olevod.com",
 "Cache-Control": "nax-age=0",
@@ -35,30 +37,60 @@ cookie = cookielib.MozillaCookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
 #indexRequest = urllib2.Request(baseUrl, None, headers)
 #opener.open(indexRequest)
+cookie_string = params["Cookie"] if "Cookie" in params else ""
+user_agent = params["User-Agent"] if "User-Agent" in params else ""
+headers['Cookie'] = cookie_string
+headers['User-Agent'] = user_agent
+
+print headers
+
+
+def encode_params(ps):
+    if "User-Agent" not in ps:
+        ps["User-Agent"] = params["User-Agent"]
+    if "Cookie" not in ps:
+        ps["Cookie"] = params["Cookie"]
+    return urllib.urlencode(ps)
+    
+def encode_plugin_url(params):
+    return plugin_url + "?" + encode_params(params)
 
 def parse(content, reg):
     pattern = re.compile(reg)
     return pattern.findall(content)
 
 def Index():
+    scraper = cfscrape.create_scraper()
+    response = scraper.get(baseUrl)
+    result = response.content
+    cookie_string = scraper.cookie_string()
+    user_agent = scraper.headers["User-Agent"]
+
     for item in ["Movie", "Tv", "Search"]:
         listitem=xbmcgui.ListItem(item)
         isFolder=True
-        url = plugin_url + '?act='+ item + '&name=' + item
+        url = encode_plugin_url({"act": item,
+                                  "name": item,
+                                  'Cookie': cookie_string,
+                                  "User-Agent": user_agent})
         xbmcplugin.addDirectoryItem(handle,url,listitem,isFolder)
     xbmcplugin.endOfDirectory(handle)
     
 def getMovieList(url):
     url = baseUrl + url
+    print("getMoveList url", url)
+    print headers
     req = urllib2.Request(url, None, headers)
     result = opener.open(req).read()
     reg = r'<a href="(.*?)" class=".*?">\n<img.*?data-original="(.*?)".*?alt="(.*?)".*?/>'
     playList = parse(result, reg)
     print("playlist:", playList)
     for i in playList:
-        imageUrl = baseUrl + i[1]
+        imageUrl = baseUrl + i[1] + "|Cookie=" + cookie_string + "&User-Agent=" + user_agent
         listitem = xbmcgui.ListItem(i[2],thumbnailImage=imageUrl)
-        url=sys.argv[0]+'?act=Detail&url='+base64.urlsafe_b64encode(i[0])+'&title='+base64.urlsafe_b64encode(i[2])
+        url = encode_plugin_url({"act": "Detail", "url": base64.urlsafe_b64encode(i[0]),
+                                                "title": base64.urlsafe_b64encode(i[2])})
+        #url=sys.argv[0]+'?act=Detail&url='+base64.urlsafe_b64encode(i[0])+'&title='+base64.urlsafe_b64encode(i[2])+'&cookie='+cookie_string
         xbmcplugin.addDirectoryItem(handle, url, listitem, True)
     xbmcplugin.endOfDirectory(handle)
         
@@ -76,6 +108,7 @@ def Search():
     sstr = kb.getText()
     if not sstr: return
     inputMovieName=urllib.quote_plus(sstr)
+        
 
     urlSearch = baseUrl + '/index.php?m=vod-search'
     data = 'wd='+inputMovieName
@@ -90,7 +123,10 @@ def Search():
     xbmcplugin.addDirectoryItem(handle, url, listitem, True)
     for i in searchResult:
         listitem = xbmcgui.ListItem(i[1])
-        url=sys.argv[0]+'?act=Detail&url='+base64.urlsafe_b64encode(i[0])+'&title='+base64.urlsafe_b64encode(i[1])
+        url = encode_plugin_url({"act": "Detail",
+                                 "url": base64.urlsafe_b64encode(i[0]),
+                                 "title": base64.urlsafe_b64encode(i[1])})
+        #url=sys.argv[0]+'?act=Detail&url='+base64.urlsafe_b64encode(i[0])+'&title='+base64.urlsafe_b64encode(i[1])
         xbmcplugin.addDirectoryItem(handle, url, listitem, True)
     xbmcplugin.endOfDirectory(handle)
 
@@ -110,7 +146,10 @@ def Episodes():
         listitem = xbmcgui.ListItem(episodeTitle)
         listitem.setInfo("video", {"Title": episodeTitle})
         listitem.setProperty("IsPlayable","true")
-        url=sys.argv[0]+'?act=Play&url='+base64.urlsafe_b64encode(item[0])+'&title='+ base64.urlsafe_b64encode(episodeTitle)
+        url = encode_plugin_url({"act": "Play",
+                                 "url": base64.urlsafe_b64encode(item[0]),
+                                 "title": base64.urlsafe_b64encode(episodeTitle)})
+        #url=sys.argv[0]+'?act=Play&url='+base64.urlsafe_b64encode(item[0])+'&title='+ base64.urlsafe_b64encode(episodeTitle)
         xbmcplugin.addDirectoryItem(handle, url, listitem, False)
     xbmcplugin.endOfDirectory(handle)
     
@@ -126,7 +165,7 @@ def play_url(url, title):
 def Play():
     url = base64.urlsafe_b64decode(params['url'])
     title = base64.urlsafe_b64decode(params['title'])
-    
+
     urlPlay = baseUrl + url
     req = urllib2.Request(urlPlay, None, headers)
     response = opener.open(req).read()
@@ -134,7 +173,7 @@ def Play():
     pattern = re.compile(reg)
     result = pattern.findall(response)
     print result
-    url = result[0][0].replace(result[0][1],result[0][2])
+    url = result[0][0].replace(result[0][1],result[0][2]) + "|Cookie=" + cookie_string + "&User-Agent=" + user_agent
     print url
     play_url(url, title)
     
