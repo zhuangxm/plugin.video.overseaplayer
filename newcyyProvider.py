@@ -101,7 +101,7 @@ class NewcyyProvider(Provider):
         print urlSearch
         req = urllib2.Request(urlSearch, None, self._header)
         searchResponse = self._opener.open(req).read()
-        print searchResponse
+        #print searchResponse
         reg = r'<li class="i_list list_n2"><a href="(.*?)" target="_blank"><img class="waitpic" src=".*?" data-original="(.*?)" alt="(.*?)".*?></a>'
         searchResult = utils.parse(searchResponse, reg)
         
@@ -181,7 +181,7 @@ class NewcyyProvider(Provider):
         pattern = re.compile(reg)
         result = pattern.findall(response)[0]
         sites = result.split("$$$")
-        print sites
+        #print sites
         for i in range(len(sites)):
             site_remove_title = sites[i].split("$$")[1]
             movie = site_remove_title.split("#")[int(ep_num)]
