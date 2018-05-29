@@ -12,7 +12,7 @@ import utils
 import sys
 import urlparse
 
-addon = xbmcaddon.Addon(id='plugin.video.dnvodPlayer')
+addon = xbmcaddon.Addon(id='plugin.video.overseaPlayer')
 rootDir = addon.getAddonInfo('path')
 rootDir = xbmc.translatePath(rootDir)
 search_file = rootDir + "/search.txt"
@@ -68,6 +68,7 @@ class Provider():
         fo.close
 
     def load_search_history(self):
+        print search_file
         try :
             fo = open(search_file, "r")
             kws = fo.readlines()
