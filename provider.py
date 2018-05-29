@@ -106,6 +106,16 @@ class Provider():
         
     def route(self, act):
         self._router[act]()
+        
+    def get_full_url(self, url):
+        imageUrl = url
+        if not imageUrl.startswith("http"):
+            imageUrl = self._baseUrl + imageUrl
+        return imageUrl
+        
+    def play_url(self, url, title):
+        listitem=xbmcgui.ListItem(title, path=url)
+        xbmcplugin.setResolvedUrl(self._handle, succeeded=True, listitem=listitem)
 
     def load_search(self):
         listitem = xbmcgui.ListItem("new search")

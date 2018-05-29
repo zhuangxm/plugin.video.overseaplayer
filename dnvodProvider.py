@@ -173,13 +173,3 @@ class DnvodProvider(Provider):
 
         real_url = url_response['data']['info'][0]['FlvPathList'][-1]['Result']
         self.play_url(real_url, title)
-    
-    def play_url(self, url, title):
-        print("now playing: ", title, url)
-        #playlist = xbmc.PlayList(1)
-        #playlist.clear()
-        listitem=xbmcgui.ListItem(title, path=url)
-        #playlist.add(url, listitem=listitem)
-        #xbmc.Player().play(playlist)
-        #xbmc.Player().play(url, listitem)
-        xbmcplugin.setResolvedUrl(self._handle, succeeded=True, listitem=listitem)

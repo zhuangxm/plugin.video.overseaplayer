@@ -38,8 +38,7 @@ def parse(content, reg):
     return pattern.findall(content)
     
 def xbmc_play(url , title):
-    listitem=xbmcgui.ListItem(title)
-    listitem.setInfo(type='video', infoLabels={"Title": title})
+    listitem=xbmcgui.ListItem(title, path = url)
     xbmc.Player().play(url, listitem)
 
     
