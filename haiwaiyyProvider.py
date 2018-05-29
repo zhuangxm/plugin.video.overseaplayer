@@ -36,6 +36,9 @@ class HaiwaiyyProvider(Provider):
     def list(self):
         url = self._params['url']
         self.getMovieList(url)
+        
+    def page_url(self, id, pageno):
+        return "/vod-type-id-" + str(id) + "-pg-" + str(pageno) + ".html"
            
     def getMovieList(self, url):
         print url
@@ -68,16 +71,16 @@ class HaiwaiyyProvider(Provider):
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         listitem = xbmcgui.ListItem("next page >> " + next_pageno,thumbnailImage=imageUrl)
         url = self.gen_plugin_url({"act": "list", 
-                                 "url": "/vod-type-id-" + type_id + "-pg-" + next_pageno + ".html"})            
+                                 "url": self.page_url(type_id,next_pageno)})            
         xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
         
     def movie(self):
-        self.getMovieList('/vod-type-id-1-pg-1.html')
+        self.category([('全部电影',1), ('动作片',5), ('喜剧片',6), ('爱情片',7), ('科幻片',8), ('剧情片',10), ('战争片',11), ('恐怖片',9)])
     
     def tv(self):
-        self.getMovieList('/vod-type-id-2-pg-2.html')
-    
+        self.category([('全部电视剧',2), ('国产剧',12), ('欧美联盟',15), ('日韩剧场',14), ('港台剧场',13)])
+            
     def search(self):
         if "keyword" not in self._params:
             kb = Keyboard('', 'Please input Movie or TV Shows name 请输入想要观看的电影或电视剧名称')

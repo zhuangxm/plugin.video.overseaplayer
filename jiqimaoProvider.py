@@ -79,14 +79,6 @@ class JiqimaoProvider(Provider):
     def page_url(self, id, pageno):
         return "/cate/more/" + str(id) + "?current=" + str(pageno)
         
-    def category(self, cates):
-        for item in cates:
-            listitem = xbmcgui.ListItem(item[0])
-            url = self.gen_plugin_url({"act": "list",
-                                       "url": self.page_url(item[1],1)})
-            xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
-        xbmcplugin.endOfDirectory(self._handle)
-        
     def movie(self):
         self.category([('电影推荐',113), ('最新上映',98), ('动作片',120), ('喜剧片',121), ('爱情片',122), ('科幻片',123), ('剧情片',125), ('战争片',126), ('恐怖片',124)])
     

@@ -116,6 +116,17 @@ class Provider():
     def play_url(self, url, title):
         listitem=xbmcgui.ListItem(title, path=url)
         xbmcplugin.setResolvedUrl(self._handle, succeeded=True, listitem=listitem)
+        
+    def page_url(self, id, pageno):
+        pass
+        
+    def category(self, cates):
+        for item in cates:
+            listitem = xbmcgui.ListItem(item[0])
+            url = self.gen_plugin_url({"act": "list",
+                                       "url": self.page_url(item[1],1)})
+            xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
+        xbmcplugin.endOfDirectory(self._handle)
 
     def load_search(self):
         listitem = xbmcgui.ListItem("new search")

@@ -36,6 +36,9 @@ class NewcyyProvider(Provider):
     def list(self):
         url = self._params['url']
         self.getMovieList(url)
+        
+    def page_url(self, id, pageno):
+        return "/list/?" + str(id) + "-" + str(pageno) + ".html"
            
     def getMovieList(self, url):
         print url
@@ -74,16 +77,16 @@ class NewcyyProvider(Provider):
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         listitem = xbmcgui.ListItem("next page >> " + next_pageno,thumbnailImage=imageUrl)
         url = self.gen_plugin_url({"act": "list", 
-                                 "url": "/list/?" + type_id + "-" + next_pageno + ".html"})            
+                                 "url": self.page_url(type_id, next_pageno)})            
         xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
-        
+
     def movie(self):
-        self.getMovieList('/list/?1-1.html')
+        self.category([('全部电影',1), ('动作片',5), ('喜剧片',10), ('爱情片',6), ('科幻片',7), ('记录片',11), ('伦理片',37), ('剧情片',12), ('战争片',9), ('恐怖片',8)])
     
     def tv(self):
-        self.getMovieList('/list/?2-1.html')
-    
+        self.category([('全部电视剧',2), ('国产剧',13), ('欧美联盟',15), ('日韩剧场',16), ('港台剧场',14), ('海外剧场',17)])
+        
     def search(self):
         if "keyword" not in self._params:
             kb = Keyboard('', 'Please input Movie or TV Shows name 请输入想要观看的电影或电视剧名称')
