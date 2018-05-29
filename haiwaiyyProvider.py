@@ -68,8 +68,7 @@ class HaiwaiyyProvider(Provider):
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         listitem = xbmcgui.ListItem("next page >> " + next_pageno,thumbnailImage=imageUrl)
         url = self.gen_plugin_url({"act": "list", 
-                                 "url": "/vod-type-id-" + type_id + "-pg-" + next_pageno + ".html",
-                                 "title": i[1]})            
+                                 "url": "/vod-type-id-" + type_id + "-pg-" + next_pageno + ".html"})            
         xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
         
