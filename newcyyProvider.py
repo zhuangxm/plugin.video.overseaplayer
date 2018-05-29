@@ -7,12 +7,12 @@ import xbmcplugin
 from xbmc import Keyboard
 import xbmc
 
-class HaiwaiyyProvider(Provider):
+class NewcyyProvider(Provider):
     def __init__(self):
         Provider.__init__(self)
-        self._header = utils.custom_header("www.haiwaiyy.com", "http", "http://www.haiwaiyy.com/")
-        self._baseUrl = "http://www.haiwaiyy.com"
-        self._name = "haiwaiyy"
+        self._header = utils.custom_header("www.newcyy.com", "https", "https://www.newcyy.com/")
+        self._baseUrl = "https://www.newcyy.com"
+        self._name = "newcyy"
         if len(self._cookie_string) > 0:
             self._header['Cookie'] = self._cookie_string
         if len(self._user_agent) > 0:
@@ -39,7 +39,8 @@ class HaiwaiyyProvider(Provider):
            
     def getMovieList(self, url):
         print url
-        urlReg = r'vod-type-id-(\d*)-pg-(\d*)\.html'
+        #/list/?1-1.html
+        urlReg = r'/list/\?(\d*)-(\d*)\.html'
         url_result = re.compile(urlReg).findall(url)[0]
         type_id = url_result[0]
         pageno = url_result[1]
@@ -56,28 +57,33 @@ class HaiwaiyyProvider(Provider):
         result = self._opener.open(req).read()
         #print result
         #reg = r'<a href="([-a-zA-Z0-9@:%_\+.~#?&//=]*?)" class=".*?">\n<img.*?data-original="(.*?)".*?alt="(.*?)".*?/>'
-        reg = r'<li class="p1 m1"><a class="link-hover" href="(.*?)" title="(.*?)"><img class="lazy" data-original="(.*?)" src=".*?" alt=".*?">'
+        #<li class="i_list list_n2"><a href="/detail/?9551.html" target="_blank"><img class="waitpic" src="/public/image/thumb_2.png" data-original="/uploads/allimg/180406/3754f8a2fb30c12e.jpg" alt="猛龙怪客" width="405" height="555"></a>
+        reg = r'<li class="i_list list_n2"><a href="(.*?)" target="_blank"><img class="waitpic" src=".*?" data-original="(.*?)" alt="(.*?)".*?></a>'
         playList = utils.parse(result, reg)
         print("playlist:", playList)
         for i in playList:
-            imageUrl = self._baseUrl + i[2] 
-            listitem = xbmcgui.ListItem(i[1],thumbnailImage=imageUrl)
+            title = i[2]
+            imageUrl = i[1]
+            if not imageUrl.startswith("http"):
+                imageUrl = self._baseUrl + imageUrl
+            #print imageUrl
+            listitem = xbmcgui.ListItem(title,thumbnailImage=imageUrl)
             url = self.gen_plugin_url({"act": "detail", 
                                      "url": i[0],
-                                     "title": i[1]})
+                                     "title": title})
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         listitem = xbmcgui.ListItem("next page >> " + next_pageno,thumbnailImage=imageUrl)
         url = self.gen_plugin_url({"act": "list", 
-                                 "url": "/vod-type-id-" + type_id + "-pg-" + next_pageno + ".html",
+                                 "url": "/list/?" + type_id + "-" + next_pageno + ".html",
                                  "title": i[1]})            
         xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
         
     def movie(self):
-        self.getMovieList('/vod-type-id-1-pg-1.html')
+        self.getMovieList('/list/?1-1.html')
     
     def tv(self):
-        self.getMovieList('/vod-type-id-2-pg-2.html')
+        self.getMovieList('/list/?2-1.html')
     
     def search(self):
         if "keyword" not in self._params:
@@ -90,21 +96,24 @@ class HaiwaiyyProvider(Provider):
         else:
             sstr = self._params["keyword"]
         inputMovieName=urllib.quote_plus(sstr)
-            
-        urlSearch = self._baseUrl + '/index.php?m=vod-search-'
-        urlSearch += 'wd-'+inputMovieName
+        #https://www.newcyy.com/search.php?searchword=
+        urlSearch = self._baseUrl + '/search.php?searchword='+inputMovieName
         print urlSearch
         req = urllib2.Request(urlSearch, None, self._header)
         searchResponse = self._opener.open(req).read()
-        #searchReg = r'<h6 class="fl"> <a href="(.*?)".*?>(.*?)</a>'
-        searchReg = r'<li class="p1 m1"><a class="link-hover" href="(.*?)" title="(.*?)"><img class="lazy" data-original="(.*?)" src=".*?" alt="(.*?)">'
-        searchResult = utils.parse(searchResponse, searchReg)
+        print searchResponse
+        reg = r'<li class="i_list list_n2"><a href="(.*?)" target="_blank"><img class="waitpic" src=".*?" data-original="(.*?)" alt="(.*?)".*?></a>'
+        searchResult = utils.parse(searchResponse, reg)
         
         listitem = xbmcgui.ListItem('[COLOR FFFF00FF]Search result 当前搜索: [/COLOR][COLOR FFFFFF00]('+sstr+') [/COLOR][COLOR FF00FFFF] Total 共计：'+str(len(searchResult))+'[/COLOR]【[COLOR FF00FF00]'+'Click here for new search 点此输入新搜索内容'+'[/COLOR]】')
         xbmcplugin.addDirectoryItem(self._handle, self.gen_plugin_url({"act": "search"}), listitem, True)
         for item in searchResult:
-            title = item[1]
-            listitem = xbmcgui.ListItem(title, thumbnailImage=self._baseUrl + item[2])
+            title = item[2]
+            imageUrl = item[1]
+            if not imageUrl.startswith("http"):
+                imageUrl = self._baseUrl + imageUrl
+
+            listitem = xbmcgui.ListItem(title, thumbnailImage=imageUrl)
             url = self.gen_plugin_url({"act": "detail",
                                      "url": item[0],
                                      "title": title})
@@ -120,18 +129,23 @@ class HaiwaiyyProvider(Provider):
         print urlDetail
         req = urllib2.Request(urlDetail, None, self._header)
         response = self._opener.open(req).read()
-        reg = r"""<li><a title='(.*?)' href='(.*?)' target="_self"><font"""
-        #reg = r'<li><a href="(.*?)".*?>(.*?)</a>'
+        #print response
+        #<li><a title='HD高清' href='/video/?12921-0-0.html' target="_self">HD高清</a></li>
+        reg = r"""<li><a title='(.*?)' href='(.*?)' target="_self">.*?</a></li>"""
         pattern = re.compile(reg)
         result = pattern.findall(response)
         for i in range(len(result)):
             item = result[i]
             episodeTitle = title + " " + item[0]
+            url = item[1]
+            host_src, ep_num = self.parse_video_html(url)
+            if host_src != '0':
+                continue
             listitem = xbmcgui.ListItem(episodeTitle)
             listitem.setInfo("video", {"Title": episodeTitle})
             listitem.setProperty("IsPlayable","true")
             url = self.gen_plugin_url({"act": "play",
-                                     "url": item[1],
+                                     "url": url,
                                      "title": episodeTitle})
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, False)
         xbmcplugin.endOfDirectory(self._handle)
@@ -144,16 +158,19 @@ class HaiwaiyyProvider(Provider):
         #xbmc.Player().play(playlist)
         #xbmc.Player().play(url, listitem)
         xbmcplugin.setResolvedUrl(self._handle, succeeded=True, listitem=listitem)
+        
+    def parse_video_html(self, url):
+        #video/?9551-0-0.html
+        urlReg = r'\?\d*-(\d*)-(\d*).html'
+        url_result = re.compile(urlReg).findall(url)[0]
+        host_src = url_result[0]
+        ep_num = url_result[1]
+        return host_src, ep_num
     
     def play(self):
         url = self._params['url']
         title = self._params['title']
-
-        #"vod-play-id-17700-src-3-num-4.html"
-        urlReg = r'vod-play-id-\d*-src-(\d*)-num-(\d*).html'
-        url_result = re.compile(urlReg).findall(url)[0]
-        host_src = url_result[0]
-        ep_num = url_result[1]
+        host_src,ep_num = self.parse_video_html(url)
         print(host_src, ep_num)
 
         urlPlay = self._baseUrl + url
@@ -161,13 +178,24 @@ class HaiwaiyyProvider(Provider):
         req = urllib2.Request(urlPlay, None, self._header)
         response = self._opener.open(req).read()
         #print response
-        reg = r"unescape\('(.*?)'\)"
+        #VideoInfoList="ckm3u8$$HD高清$https://youku.cdn-tudou.com/20180525/6123_836f65fc/index.m3u8$ckm3u8$$$kuyun$$HD高清$https://youku.cdn-tudou.com/share/4ca82b2a861f70cd15d83085b000dbde$kuyun"
+        reg = r'VideoInfoList="(.*?)"'
         pattern = re.compile(reg)
-        result = urllib.unquote(pattern.findall(response)[0])
-        site = result.split("$$$")[int(host_src) - 1]
-        movie_epnum = site.split("#")[int(ep_num) - 1]
-        movie_url = movie_epnum.split("$")[1]
-        print(movie_epnum, movie_url)
+        result = pattern.findall(response)[0]
+        sites = result.split("$$$")
+        print sites
+        for i in range(len(sites)):
+            site_remove_title = sites[i].split("$$")[1]
+            movie = site_remove_title.split("#")[int(ep_num)]
+            movie_info = movie.split("$")
+            sites[i] = movie_info[1]
+        
+        movie_url = ""
+        for movie in sites:
+            if "m3u8" in movie:
+                movie_url = movie
+                break
+        print(ep_num, movie_url)
         # url = result[0][0].replace(result[0][1],result[0][2]) + "|Cookie=" + self._cookie_string + "&User-Agent=" + self._user_agent
         # print url
         self.play_url(movie_url, title)

@@ -17,8 +17,6 @@ class OlevodProvider(Provider):
             self._header['Cookie'] = self._cookie_string
         if len(self._user_agent) > 0:
             self._header['User-Agent'] = self._user_agent
-        self._router["movie"] = self.movie
-        self._router["tv"] = self.tv
         
     def index(self):
         scraper = cfscrape.create_scraper()

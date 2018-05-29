@@ -48,6 +48,8 @@ class Provider():
                         "detail": self.episodes,
                         "play": self.play,
                         "list": self.list,
+                        'movie': self.movie,
+                        'tv': self.tv,
                         "index": self.index}
 
     def encode_params(self, ps):
@@ -89,6 +91,12 @@ class Provider():
     def search(self, kw):
         pass
     
+    def movie(self):
+        pass
+        
+    def tv(self):
+        pass
+        
     def new_search(self):
         pass
     
