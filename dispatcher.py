@@ -2,8 +2,10 @@
 
 import xbmcgui, xbmcplugin
 from olevodProvider import OlevodProvider
+from dnvodProvider import DnvodProvider
 
-providers = {"olevod": OlevodProvider} 
+providers = {"olevod": OlevodProvider,
+             "dnvod": DnvodProvider} 
 
 def get_provider(provider_name):
     return providers[provider_name]()

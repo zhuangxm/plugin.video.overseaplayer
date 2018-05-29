@@ -123,10 +123,10 @@ class OlevodProvider(Provider):
         xbmcplugin.endOfDirectory(self._handle)
     
     def play_url(self, url, title):
-        playlist = xbmc.PlayList(1)
-        playlist.clear()
-        listitem=xbmcgui.ListItem(title)
-        playlist.add(url, listitem=listitem)
+        #playlist = xbmc.PlayList(1)
+        #playlist.clear()
+        listitem=xbmcgui.ListItem(title, path=url)
+        #playlist.add(url, listitem=listitem)
         #xbmc.Player().play(playlist)
         #xbmc.Player().play(url, listitem)
         xbmcplugin.setResolvedUrl(self._handle, succeeded=True, listitem=listitem)
