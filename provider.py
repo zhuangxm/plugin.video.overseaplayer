@@ -47,6 +47,7 @@ class Provider():
                         "load_search": self.load_search,
                         "detail": self.episodes,
                         "play": self.play,
+                        "list": self.list,
                         "index": self.index}
 
     def encode_params(self, ps):
@@ -82,12 +83,9 @@ class Provider():
     def gen_plugin_url(self, params):
         return self._plugin_url + "?" + self.encode_params(params)
     
-    def get_list(self, url):
+    def list(self, url):
         pass
         
-    def get_movie_url(self, url, movid_id):
-        pass
-    
     def search(self, kw):
         pass
     
