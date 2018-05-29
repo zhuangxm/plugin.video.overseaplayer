@@ -4,7 +4,6 @@ from provider import *
 import utils
 import cfscrape
 import xbmcplugin
-import base64
 from xbmc import Keyboard
 import xbmc
 
@@ -18,14 +17,8 @@ class OlevodProvider(Provider):
             self._header['Cookie'] = self._cookie_string
         if len(self._user_agent) > 0:
             self._header['User-Agent'] = self._user_agent
-
-    def route(self, act):
-        {"index": self.index,
-         "movie": self.movie,
-         "tv": self.tv,
-         "search": self.search,
-         "detail": self.episodes,
-         "play": self.play}[act]()
+        self._router["movie"] = self.movie
+        self._router["tv"] = self.tv
         
     def index(self):
         scraper = cfscrape.create_scraper()
@@ -34,11 +27,11 @@ class OlevodProvider(Provider):
         cookie_string = scraper.cookie_string()
         user_agent = scraper.headers["User-Agent"]
 
-        for item in ["movie", "tv", "search"]:
+        for item,value in {"movie": "movie", "tv":"tv", "search": "load_search"}.iteritems():
             listitem=xbmcgui.ListItem(item)
             isFolder=True
-            url = self.gen_plugin_url({"act": item,
-                                       "name": item,
+            url = self.gen_plugin_url({"act": value,
+                                       "name": value,
                                        'Cookie': cookie_string,
                                        "User-Agent": user_agent})
             xbmcplugin.addDirectoryItem(self._handle,url,listitem,isFolder)
@@ -60,7 +53,6 @@ class OlevodProvider(Provider):
             url = self.gen_plugin_url({"act": "detail", 
                                      "url": i[0],
                                      "title": i[2]})
-            #url=sys.argv[0]+'?act=Detail&url='+base64.urlsafe_b64encode(i[0])+'&title='+base64.urlsafe_b64encode(i[2])+'&cookie='+cookie_string
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
         
@@ -71,11 +63,15 @@ class OlevodProvider(Provider):
         self.getMovieList('/?m=vod-type-id-2.html')
     
     def search(self):
-        kb = Keyboard('', 'Please input Movie or TV Shows name 请输入想要观看的电影或电视剧名称')
-        kb.doModal()
-        if not kb.isConfirmed(): return
-        sstr = kb.getText()
-        if not sstr: return
+        if "keyword" not in self._params:
+            kb = Keyboard('', 'Please input Movie or TV Shows name 请输入想要观看的电影或电视剧名称')
+            kb.doModal()
+            if not kb.isConfirmed(): return
+            sstr = kb.getText()
+            if not sstr: return
+            self.add_search_history(sstr)
+        else:
+            sstr = self._params["keyword"]
         inputMovieName=urllib.quote_plus(sstr)
             
         urlSearch = self._baseUrl + '/index.php?m=vod-search'
@@ -93,14 +89,13 @@ class OlevodProvider(Provider):
             url = self.gen_plugin_url({"act": "detail",
                                      "url": i[0],
                                      "title": i[1]})
-            #url=sys.argv[0]+'?act=Detail&url='+base64.urlsafe_b64encode(i[0])+'&title='+base64.urlsafe_b64encode(i[1])
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
 
     def episodes(self):
         print self._params
-        url = base64.urlsafe_b64decode(self._params['url'])
-        title = base64.urlsafe_b64decode(self._params['title'])
+        url = self._params['url']
+        title = self._params['title']
         print url
         urlDetail = self._baseUrl + url
         print urlDetail
@@ -118,7 +113,6 @@ class OlevodProvider(Provider):
             url = self.gen_plugin_url({"act": "play",
                                      "url": item[0],
                                      "title": episodeTitle})
-            #url=sys.argv[0]+'?act=Play&url='+base64.urlsafe_b64encode(item[0])+'&title='+ base64.urlsafe_b64encode(episodeTitle)
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, False)
         xbmcplugin.endOfDirectory(self._handle)
     
@@ -132,8 +126,8 @@ class OlevodProvider(Provider):
         xbmcplugin.setResolvedUrl(self._handle, succeeded=True, listitem=listitem)
     
     def play(self):
-        url = base64.urlsafe_b64decode(self._params['url'])
-        title = base64.urlsafe_b64decode(self._params['title'])
+        url = self._params['url']
+        title = self._params['title']
 
         urlPlay = self._baseUrl + url
         req = urllib2.Request(urlPlay, None, self._header)

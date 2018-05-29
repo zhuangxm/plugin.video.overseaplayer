@@ -5,7 +5,6 @@ from provider import *
 import utils
 import cfscrape
 import xbmcplugin
-import base64
 from xbmc import Keyboard
 import xbmc
 
@@ -19,29 +18,13 @@ class DnvodProvider(Provider):
             self._header['Cookie'] = self._cookie_string
         if len(self._user_agent) > 0:
             self._header['User-Agent'] = self._user_agent
-
-    def route(self, act):
-        {"index": self.index,
-         "movie": self.movie,
-         "tv": self.tv,
-         "search": self.search,
-         "detail": self.episodes,
-         "play": self.play}[act]()
         
     def index(self):
-        scraper = cfscrape.create_scraper()
-        response = scraper.get(self._baseUrl)
-        result = response.content
-        cookie_string = scraper.cookie_string()
-        user_agent = scraper.headers["User-Agent"]
-
-        for item in ["movie", "tv", "search"]:
-            listitem=xbmcgui.ListItem(item)
+        for key, value in {"search": "load_search"}.iteritems():
+            listitem=xbmcgui.ListItem(key)
             isFolder=True
-            url = self.gen_plugin_url({"act": item,
-                                       "name": item,
-                                       'Cookie': cookie_string,
-                                       "User-Agent": user_agent})
+            url = self.gen_plugin_url({"act": value,
+                                       "name": value})
             xbmcplugin.addDirectoryItem(self._handle,url,listitem,isFolder)
         xbmcplugin.endOfDirectory(self._handle)
         
@@ -61,7 +44,6 @@ class DnvodProvider(Provider):
             url = self.gen_plugin_url({"act": "detail", 
                                      "url": i[0],
                                      "title": i[2]})
-            #url=sys.argv[0]+'?act=Detail&url='+base64.urlsafe_b64encode(i[0])+'&title='+base64.urlsafe_b64encode(i[2])+'&cookie='+cookie_string
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
         
@@ -72,10 +54,15 @@ class DnvodProvider(Provider):
         self.getMovieList('/?m=vod-type-id-2.html')
     
     def search(self):
-        kb = Keyboard('',u'Please input Movie or TV Shows name 请输入想要观看的电影或电视剧名称')
-        kb.doModal()
-        if not kb.isConfirmed(): return
-        sstr = kb.getText()
+        if "keyword" not in self._params:
+            kb = Keyboard('',u'Please input Movie or TV Shows name 请输入想要观看的电影或电视剧名称')
+            kb.doModal()
+            if not kb.isConfirmed(): return
+            sstr = kb.getText()
+            if not sstr: return
+            self.add_search_history(sstr)
+        else:
+            sstr = self._params["keyword"]
         if not sstr: return
         inputMovieName=urllib.quote_plus(sstr)
         # try:
@@ -143,8 +130,8 @@ class DnvodProvider(Provider):
         xbmcplugin.endOfDirectory(self._handle)
 
     def episodes(self):
-        url = base64.urlsafe_b64decode(self._params['url'])
-        title = base64.urlsafe_b64decode(self._params['title'])
+        url = self._params['url']
+        title = self._params['title']
         filmIdReg = r'id=(.*%3d)'
         filmIdPattern = re.compile(filmIdReg)
         filmIdResult = filmIdPattern.findall(url)
@@ -172,12 +159,11 @@ class DnvodProvider(Provider):
             listitem.setProperty("IsPlayable","true")
             url = self.gen_plugin_url({"act": "play", "id": detailResult[i],
                                        "title": episodeTitle})
-            #url=sys.argv[0]+'?act=play&id='+detailResult[i]+'&ep='+str(i+1)+'&title='+base64.urlsafe_b64encode(searchResultName[whichResultInt])
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, False)
         xbmcplugin.endOfDirectory(self._handle)
         
     def play(self):
-        title=base64.urlsafe_b64decode(self._params['title'])
+        title = self._params['title']
         id = self._params['id']
         urlSec = "http://m2.dnvod.tv/api/video/play?id=" + id + "&ispath=false&cinema=1&device=desktop&player=CkPlayer&tech=HLS&region=AU&country=NZ&lang=none&v=1"
         headers = utils.custom_header("m2.dnvod.tv", "http", "http://www.dnvod.tv/Movie/Readyplay.aspx?id=jydSM%2fudfCo%3d")
