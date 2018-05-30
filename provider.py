@@ -146,6 +146,16 @@ class Provider():
             xbmcplugin.addDirectoryItem(self._handle,url,listitem, False)
         xbmcplugin.endOfDirectory(self._handle)
         
-        
-    
+    def choose_and_play(self, list, title):
+        new_list = [x for x in list if "m3u8" in x or "mp4" in x]
+        if len(new_list) == 0:
+            new_list = list
+        if len(new_list) == 1:
+            movie_url = new_list[0]
+        else:
+            dialog = xbmcgui.Dialog()
+            ret =  dialog.select('Choose a source', new_list)
+            movie_url = new_list[ret]
+        print(title, movie_url)
+        self.play_url(movie_url, title)
         

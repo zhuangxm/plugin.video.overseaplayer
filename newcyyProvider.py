@@ -141,6 +141,9 @@ class NewcyyProvider(Provider):
             episodeTitle = title + " " + item[0]
             url = item[1]
             host_src, ep_num = self.parse_video_html(url)
+            print(host_src, ep_num)
+            if host_src != '0':
+                continue
             listitem = xbmcgui.ListItem(episodeTitle)
             listitem.setInfo("video", {"Title": episodeTitle})
             listitem.setProperty("IsPlayable","true")
@@ -181,13 +184,4 @@ class NewcyyProvider(Provider):
             movie_info = movie.split("$")
             sites[i] = movie_info[1]
         
-        movie_url = sites[int(host_src)]
-        if "m3u8" not in movie_url: 
-            for movie in sites:
-                if "m3u8" in movie:
-                    movie_url = movie
-                    break
-        print(ep_num, movie_url)
-        # url = result[0][0].replace(result[0][1],result[0][2]) + "|Cookie=" + self._cookie_string + "&User-Agent=" + self._user_agent
-        # print url
-        self.play_url(movie_url, title)
+        self.choose_and_play(sites, title)

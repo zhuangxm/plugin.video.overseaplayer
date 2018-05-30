@@ -129,24 +129,32 @@ class HaiwaiyyProvider(Provider):
         for i in range(len(result)):
             item = result[i]
             episodeTitle = title + " " + item[0]
+            url = item[1]
+            host_src, ep_num = self.parse_src_ep(url)
+            if host_src != '1':
+                continue
             listitem = xbmcgui.ListItem(episodeTitle)
             listitem.setInfo("video", {"Title": episodeTitle})
             listitem.setProperty("IsPlayable","true")
             url = self.gen_plugin_url({"act": "play",
-                                     "url": item[1],
+                                     "url": url,
                                      "title": episodeTitle})
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, False)
         xbmcplugin.endOfDirectory(self._handle)
-    
-    def play(self):
-        url = self._params['url']
-        title = self._params['title']
-
+        
+    def parse_src_ep(self, url):
         #"vod-play-id-17700-src-3-num-4.html"
         urlReg = r'vod-play-id-\d*-src-(\d*)-num-(\d*).html'
         url_result = re.compile(urlReg).findall(url)[0]
         host_src = url_result[0]
         ep_num = url_result[1]
+        return host_src, ep_num
+    
+    def play(self):
+        url = self._params['url']
+        title = self._params['title']
+
+        host_src,ep_num = self.parse_src_ep(url)
         print(host_src, ep_num)
 
         urlPlay = self._baseUrl + url
@@ -157,10 +165,10 @@ class HaiwaiyyProvider(Provider):
         reg = r"unescape\('(.*?)'\)"
         pattern = re.compile(reg)
         result = urllib.unquote(pattern.findall(response)[0])
-        site = result.split("$$$")[int(host_src) - 1]
-        movie_epnum = site.split("#")[int(ep_num) - 1]
-        movie_url = movie_epnum.split("$")[1]
-        print(movie_epnum, movie_url)
-        # url = result[0][0].replace(result[0][1],result[0][2]) + "|Cookie=" + self._cookie_string + "&User-Agent=" + self._user_agent
-        # print url
-        self.play_url(movie_url, title)
+        sources = result.split("$$$")
+        for i in range(len(sources)):
+            source = sources[i]
+            movie_epnum = source.split("#")[int(ep_num) - 1]
+            sources[i] = movie_epnum.split("$")[1]
+        print(sources)
+        self.choose_and_play(sources, title)
