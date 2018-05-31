@@ -119,7 +119,7 @@ class JiqimaoProvider(Provider):
         # </a>
         searchReg = r'<a href="([-a-zA-Z0-9@:%_\+.~#?&//=]*?)" target="_blank">\s*?<div class="search-tv-box">\s*?<img class="search-tv-img" src="(.*?)" alt="(.*?)".*?>'
         searchResult = utils.parse(searchResponse, searchReg)
-        print searchResult
+        #print searchResult
         
         listitem = xbmcgui.ListItem('[COLOR FFFF00FF]Search result 当前搜索: [/COLOR][COLOR FFFFFF00]('+sstr+') [/COLOR][COLOR FF00FFFF] Total 共计：'+str(len(searchResult))+'[/COLOR]【[COLOR FF00FF00]'+'Click here for new search 点此输入新搜索内容'+'[/COLOR]】')
         xbmcplugin.addDirectoryItem(self._handle, self.gen_plugin_url({"act": "search"}), listitem, True)
@@ -141,7 +141,7 @@ class JiqimaoProvider(Provider):
         print urlDetail
         req = urllib2.Request(urlDetail, None, self._header)
         response = self._opener.open(req).read()
-        print response
+        #print response
         #<li><a title="" onclick="_hmt.push(['_trackEvent', 'web_player', 'web_player_click', 'web_player_click_如果,爱_1'])" target="_blank" href="http://jiqimao.tv/video/ckPlayer/604fb56dc909801639d01abebb60dcaa1823d7c2">1</a></li>
         #<a onclick="_hmt.push(['_trackEvent', 'web_player', 'web_player_click', 'web_player_click_死侍2_TC中字版'])" target="_blank" href="http://jiqimao.tv/video/ckPlayer/239cf7cbc0da03f54c18f5d6eb8e6415b7e338ca">TC中字版</a>
         reg = '<a.*?onclick="_hmt.*?" target=".*?" href="(.*?)">(.*?)</a>'

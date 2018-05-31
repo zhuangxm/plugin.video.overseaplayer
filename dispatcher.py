@@ -6,12 +6,14 @@ from dnvodProvider import DnvodProvider
 from haiwaiyyProvider import HaiwaiyyProvider
 from newcyyProvider import NewcyyProvider
 from jiqimaoProvider import JiqimaoProvider
+from newasiantvProvider import NewasaintvProvider
 
 providers = {"olevod": OlevodProvider,
              "dnvod": DnvodProvider,
              "haiwaiyy": HaiwaiyyProvider,
              "newcyy": NewcyyProvider,
-             "jiqimao": JiqimaoProvider}
+             "jiqimao": JiqimaoProvider,
+             "newasiantv": NewasaintvProvider}
 
 def get_provider(provider_name):
     return providers[provider_name]()
