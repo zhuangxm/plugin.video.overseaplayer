@@ -26,7 +26,7 @@ class NewasaintvProvider(Provider):
         cookie_string = scraper.cookie_string()
         user_agent = scraper.headers["User-Agent"]
 
-        for item,value in {"movie": "movie", "tv":"tv", "search": "load_search"}.iteritems():
+        for item,value in {"tv":"tv", "movie": "movie"}.items():
             listitem=xbmcgui.ListItem(item)
             isFolder=True
             url = self.gen_plugin_url({"act": value,
@@ -36,10 +36,24 @@ class NewasaintvProvider(Provider):
             xbmcplugin.addDirectoryItem(self._handle,url,listitem,isFolder)
         xbmcplugin.endOfDirectory(self._handle)
         
-    def getMovieList(self, url):
-        url = self._baseUrl + url
+    def drama_url(self, country_id, pageno):
+        return "/drama/" + str(pageno) + "&country_id=" + str(country_id)
+    
+    def movie_url(self, pageno):
+        return "/movie/" + str(pageno)
+        
+    def pageno_url(self, url, pageno):
+        return self.get_full_url(url).replace("$pageno$", str(pageno))
+        
+    def list(self):
+        url = self._params['url']
+        pageno = self._params['pageno']
+        self.getMovieList(url, pageno)
+        
+    def getMovieList(self, page_url, pageno):
+        url = self.pageno_url(page_url, pageno)
+        next_pageno = str(int(pageno) + 1)
         print("getMoveList url", url)
-        print self._header
         req = urllib2.Request(url, None, self._header)
         result = self._opener.open(req).read()
         #print result
@@ -53,13 +67,18 @@ class NewasaintvProvider(Provider):
                                      "url": i[0],
                                      "title": i[1]})
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
+        listitem = xbmcgui.ListItem("next page >> " + next_pageno)
+        url = self.gen_plugin_url({"act": "list",
+                                   "url": page_url,
+                                   "pageno": next_pageno})
+        xbmcplugin.addDirectoryItem(self._handle, url, listitem, True)
         xbmcplugin.endOfDirectory(self._handle)
         
     def movie(self):
-        self.getMovieList('/?m=vod-type-id-1.html')
+        self.getMovieList('/movie/$pageno$',1)
     
     def tv(self):
-        self.getMovieList('/drama/?order_by=&category_id=&country_id=2&year=')
+        self.getMovieList('/drama/$pageno$&country_id=2', 1)
     
     def search(self):
         if "keyword" not in self._params:
