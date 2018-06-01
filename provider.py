@@ -12,7 +12,7 @@ import utils
 import sys
 import urlparse
 
-addon = xbmcaddon.Addon(id='plugin.video.overseaPlayer')
+addon = xbmcaddon.Addon(id='plugin.video.overseaplayer')
 rootDir = addon.getAddonInfo('path')
 rootDir = xbmc.translatePath(rootDir)
 search_file = rootDir + "/search.txt"
