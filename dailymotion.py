@@ -25,6 +25,12 @@ def split_url(s):
     s = s.split('#cell')[0]
     return s
 
+def qualities(video):
+    if video[0] == "auto":
+        return 0
+    else:
+        return int(video[0])
+
 def getStreamUrl(id,live=False):
     ff = "off"
     language = "en_US"
@@ -45,12 +51,13 @@ def getStreamUrl(id,live=False):
         cc = cc.items()
 
         #cc = sorted(cc,key=s,reverse=True)
-        cc = sorted(cc,reverse=True)
+        cc = sorted(cc,reverse=True, key=qualities)
         m_url = ''
         other_playable_url = []
 
         for source,json_source in cc:
             source = source.split("@")[0]
+            
             for item in json_source:
             
                 m_url = item.get('url',None)
