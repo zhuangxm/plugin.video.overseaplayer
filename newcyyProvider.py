@@ -2,7 +2,6 @@
 
 from provider import *
 import utils
-import cfscrape
 import xbmcplugin
 from xbmc import Keyboard
 import xbmc

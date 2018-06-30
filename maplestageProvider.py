@@ -2,7 +2,6 @@
 
 from provider import *
 import utils
-import cfscrape
 import xbmcplugin
 from xbmc import Keyboard
 import xbmc
@@ -34,6 +33,7 @@ class MaplestageProvider(Provider):
                                        "name": value})
             xbmcplugin.addDirectoryItem(self._handle,url,listitem,isFolder)
         xbmcplugin.endOfDirectory(self._handle)
+        print("maple 5")
         # listitem = xbmcgui.ListItem("play")
         # listitem.setInfo("video", {"Title": "shaolin"})
         # listitem.setProperty("IsPlayable","true")

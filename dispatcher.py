@@ -1,24 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import xbmcgui, xbmcplugin
-from olevodProvider import OlevodProvider
-from dnvodProvider import DnvodProvider
-from haiwaiyyProvider import HaiwaiyyProvider
-from newcyyProvider import NewcyyProvider
-from jiqimaoProvider import JiqimaoProvider
-from newasiantvProvider import NewasaintvProvider
-from maplestageProvider import MaplestageProvider
+from pydoc import locate
 
-providers = {"olevod": OlevodProvider,
-             "dnvod": DnvodProvider,
-             "haiwaiyy": HaiwaiyyProvider,
-             "newcyy": NewcyyProvider,
-             "jiqimao": JiqimaoProvider,
-             "newasiantv": NewasaintvProvider,
-             "maplestage": MaplestageProvider}
+providers = {"olevod": "olevodProvider.OlevodProvider",
+             #"dnvod": "dnvodProvider.DnvodProvider",
+             "haiwaiyy": "haiwaiyyProvider.HaiwaiyyProvider",
+             "newcyy": "newcyyProvider.NewcyyProvider",
+             "jiqimao": "jiqimaoProvider.JiqimaoProvider",
+             "newasiantv": "newasiantvProvider.NewasaintvProvider",
+             "maplestage": "maplestageProvider.MaplestageProvider"}
 
 def get_provider(provider_name):
-    return providers[provider_name]()
+    return locate(providers[provider_name])()
+    #return providers[provider_name]()
 
 def route(handle, plugin_url, params):
     if 'provider' in params:

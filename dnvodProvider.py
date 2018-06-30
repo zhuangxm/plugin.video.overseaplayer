@@ -3,10 +3,21 @@
 from provider import *
 
 import utils
-import cfscrape
 import xbmcplugin
 from xbmc import Keyboard
 import xbmc
+
+## this plugin is broken. 
+## the search method has changed to ajax invoke.
+## http://www.dnvod.tv/listprovider/ajaxlist.async.ashx
+## post data like below:
+## action: Search
+## cid: 
+## tag: 同学
+## star: 
+## dir: 
+## page: 1
+## removed temporary.
 
 class DnvodProvider(Provider):
     def __init__(self):
@@ -53,6 +64,7 @@ class DnvodProvider(Provider):
     def tv(self):
         self.getMovieList('/?m=vod-type-id-2.html')
     
+
     def search(self):
         if "keyword" not in self._params:
             kb = Keyboard('',u'Please input Movie or TV Shows name 请输入想要观看的电影或电视剧名称')
@@ -64,52 +76,16 @@ class DnvodProvider(Provider):
         else:
             sstr = self._params["keyword"]
         if not sstr: return
-        inputMovieName=urllib.quote_plus(sstr)
-        # try:
-        #     urlSearch = 'http://www.dnvod.tv/Movie/Search.aspx?tags=a'
-        #     req = urllib2.Request(urlSearch, self._header)
-        #     searchResponse = self._opener.open(req)
-        # except urllib2.HTTPError as e:
-        #     error_message=e.read()
-        # #	print error_message
-        #     detailReg = r'f\, (.*)={\"(.*)\":(.*)\};'
-        #     detailPattern = re.compile(detailReg)
-        #     detailResult = detailPattern.findall(error_message)
-        #     first=detailResult[0][0]+"={\""+detailResult[0][1]+"\":"+detailResult[0][2]+"};"
-        #     varname1=detailResult[0][0]
-        #     varname2=detailResult[0][1]
-        #     detailReg = r'challenge\-form\'\)\;\s*(.*)a.value = (.*)'
-        #     detailPattern = re.compile(detailReg)
-        #     detailResult = detailPattern.findall(error_message)
-        #     second=detailResult[0][0]+"s = parseInt("+varname1+"."+varname2+", 10) + 12; "
-        #     jscode="var s,"+first+second
-        #     result=js2py.eval_js(jscode)
-        #     soup = BeautifulSoup(error_message,"html.parser")
-        #     fparam=soup.find_all('input')[0]['value']
-        #     sparam=soup.find_all('input')[1]['value']
-        #     searchData= urllib.urlencode({
-        #         'jschl_vc': fparam,
-        #         'pass': sparam,
-        #         'jschl_answer': result
-        #         })
-        #     searchUrl = 'http://www.dnvod.tv/cdn-cgi/l/chk_jschl?'+'jschl_vc='+str(fparam)+'&pass='+str(sparam)+'&jschl_answer='+str(result)
-        #     try:
-        #         print searchUrl
-        #         headers['Referer']='http://www.dnvod.tv/Movie/Search.aspx?tags=a'
-        #         req = urllib2.Request(searchUrl, headers=Searchheaders)
-        #         time.sleep(5)
-        #         sresult = opener.open(req)
-        #         # print sresult.read()
-        #         print sresult.info()
-        #     except urllib2.HTTPError as e:
-        #         print e.code
-        #         print e.read()
-        
+        inputMovieName=urllib.quote_plus(sstr)        
         #headers['Referer']='http://www.dnvod.tv/'
         urlSearch = 'http://www.dnvod.tv/Movie/Search.aspx?tags='+inputMovieName
+        print urlSearch
+        home = urllib2.Request(self._baseUrl, None, self._header)
+        self._opener.open(home)
         searchRequest = urllib2.Request(urlSearch,None, self._header)
         searchResponse = self._opener.open(searchRequest)
         searchdataResponse = searchResponse.read()
+        print searchdataResponse
         searchReg = r'<a href="(.*%3d)">'
         searchPattern = re.compile(searchReg)
         urls = searchPattern.findall(searchdataResponse)
