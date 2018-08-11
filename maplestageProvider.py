@@ -155,20 +155,45 @@ class MaplestageProvider(Provider):
             xbmcplugin.addDirectoryItem(self._handle, url, listitem, False)
         xbmcplugin.endOfDirectory(self._handle)
         
-    def get_video_id(self, url):
+    # def get_video_id(self, url):
+    #     req = urllib2.Request(url, None, self._header)
+    #     response = self._opener.open(req).read()
+    #     #print response
+    #     reg = r'var pageData = .*?"name":"dailymotion","videos":\[(.*?)\].*?var'
+    #     videos = utils.parse(response, reg)[0]
+    #     print videos
+    #     videos = json.loads("["+videos+"]")
+    #     print videos
+    #     for video in videos:
+    #         video_type = video["type"].encode("utf-8")
+    #         if video_type == "dailymotion":
+    #             return video["id"].encode("utf-8")
+                
+    def parse_videos(self, page_data):
+        props = page_data["props"]
+        models = [i for i in props if i["name"] == "model"][0]["value"]["videoSources"]
+        print("models",models)
+        dailymotions = [i for i in models if i["name"] == "dailymotion" and not i["hidden"]]
+        print("dailymotions", dailymotions)
+        videos = dailymotions[0]["videos"]
+        return videos
+          
+    def get_video_id(self,url):
         req = urllib2.Request(url, None, self._header)
         response = self._opener.open(req).read()
         #print response
-        reg = r'var pageData = .*?"name":"dailymotion","videos":\[(.*?)\].*?var'
-        videos = utils.parse(response, reg)[0]
-        print videos
-        videos = json.loads("["+videos+"]")
-        print videos
-        for video in videos:
-            video_type = video["type"].encode("utf-8")
-            if video_type == "dailymotion":
-                return video["id"].encode("utf-8")
-                
+        reg = r'var pageData = (.*?);'
+        page_data = json.loads(utils.parse(response, reg)[0])
+        print page_data
+        videos = self.parse_videos(page_data)
+        print("videos", videos)
+        return videos[0]["id"].encode("utf-8")
+        # videos = json.loads("["+videos+"]")
+        # print videos
+        # for video in videos:
+        #     video_type = video["type"].encode("utf-8")
+        #     if video_type == "dailymotion":
+        #         return video["id"].encode("utf-8")
     
     def play(self):
         url = self._params["url"]
@@ -176,6 +201,7 @@ class MaplestageProvider(Provider):
         print url
         print title
         video_id = self.get_video_id(url)
+        print("video_id:",video_id)
         movie_url = dailymotion.getStreamUrl(video_id, False) 
         #movie_url = urllib.quote(movie_url, safe=":#&=/")
         print("movie_url", movie_url)        
